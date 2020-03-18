@@ -27,7 +27,7 @@ function install_n2n_on_debian()
     echo "install_n2n_on_debian"
     sudo apt-get update && sudo apt-get upgrade
     sudo apt-get install -y subversion build-essential libssl-dev git cmake make sudo
-    git clone https://gitee.com/timpaik/n2n_src ~/n2n
+    git clone https://github.com/ntop/n2n ~/n2n
     cd ~/n2n && mkdir build && cd build
     sudo cmake -build . ..
     sudo make
@@ -41,7 +41,7 @@ function install_n2n_on_redhat()
 {
     echo "install_n2n_on_redhat"
     sudo yum install subversion gcc-c++ openssl-devel git cmake make sudo
-    git clone https://gitee.com/timpaik/n2n_src ~/n2n
+    git clone https://github.com/ntop/n2n ~/n2n
     cd ~/n2n && mkdir build && cd build
     sudo cmake -build . ..
     sudo make
