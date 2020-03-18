@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# 完成安装
+function end_install()
+{
+    mkdir ~/.local/ & mkdir ~/.local/bin/
+    sudo touch ~/n2n.log
+    sudo chmod 766 ~/n2n.log
+    sudo touch ~/.local/bin/n2n
+    sudo chmod 733 ~/.local/bin/n2n
+    echo "#!/bin/bash">> ~/.local/bin/n2n
+    echo "sudo edge -l 47.240.64.223:23333 -A -r -a dhcp:192.168.211.66 -p 27279 -c dhwpcs -k dhwpcs >> ~/n2n.log">> ~/.local/bin/n2n
+    if which n2n >/dev/null; then
+        echo -e "安装成功！"
+    else
+        echo -e "未完成安装，请重试！"
+    fi
+
+}
+
+# 在debian系列发行版上安装n2n
+function install_n2n_on_debian()
+{
+    cat /proc/1/cgroup | grep -qi docker \
+    && apt-get update && apt-get upgrade && apt-get -y install sudo \
+    || echo "Not Docker"
+    echo "install_n2n_on_debian"
+    sudo apt-get update && sudo apt-get upgrade
+    sudo apt-get install -y subversion build-essential libssl-dev git cmake make sudo
+    git clone https://gitee.com/timpaik/n2n_src ~/n2n
+    cd ~/n2n && mkdir build && cd build
+    sudo cmake -build . ..
+    sudo make
+    sudo cp edge /usr/bin && sudo cp supernode /usr/bin
+    sudo chmod 755 /usr/bin/edge && sudo chmod 755 /usr/bin/supernode
+    end_install
+}
+
+# 在redhat系列发行版上安装n2n
+function install_n2n_on_redhat()
+{
+    echo "install_n2n_on_redhat"
+    sudo yum install subversion gcc-c++ openssl-devel git cmake make sudo
+    git clone https://gitee.com/timpaik/n2n_src ~/n2n
+    cd ~/n2n && mkdir build && cd build
+    sudo cmake -build . ..
+    sudo make
+    sudo cp edge /usr/bin && sudo cp supernode /usr/bin
+    sudo chmod 755 /usr/bin/edge && sudo chmod 755 /usr/bin/supernode
+    end_install
+}
+
+# 在archlinux系列发行版上安装n2n
+function install_n2n_on_archlinux()
+{
+    echo "install_n2n_on_archlinux"
+    if which yay >/dev/null; then
+        echo -e "yay is installed"
+    else
+        sudo pacman -S --noconfirm yay
+    fi
+    yay -S --noconfirm n2n-git 
+    end_install
+}
+
+# 获取linux包管理器类型
+function get_pkg_manage_type()
+{
+    if which apt-get > /dev/null ; then
+        echo "apt-get" # debian ubuntu系列
+    elif which yum > /dev/null ; then
+        echo "yum" # redhat centos系列
+    elif which pacman > /dev/null; then
+        echo "pacman" # archlinux系列
+    else
+        echo "invaild"
+    fi
+}
+
+# 在linux平台安装n2n
+function install_n2n_on_linux()
+{
+    type=`get_pkg_manage_type`
+    echo "linux pkg manage type: "${type}
+
+    echo "install_n2n_on_linux"
+
+    if [ ${type} == "apt-get" ]; then
+        install_n2n_on_debian
+    elif [ ${type} == "yum" ]; then
+        install_n2n_on_redhat
+    elif [ ${type} == "pacman" ]; then
+        install_n2n_on_archlinux
+    else
+        echo "not support this pkg manage type: "${type}
+    fi
+}
+
+# 获取平台类型，mac还是linux平台
+function get_platform_type()
+{
+    echo $(uname)
+}
+
+# main函数
+function main()
+{
+    type=`get_platform_type`
+    echo "platform type: "${type}
+
+    if [ ${type} == "Darwin" ]; then
+        echo "If you use a MAC, contact your system administrator to install n2n"
+    elif [ ${type} == "Linux" ]; then
+        install_n2n_on_linux
+    else
+        echo "not support platform type: "${type}
+    fi
+}
+
+# 调用main函数
+main
